@@ -34,7 +34,7 @@ app.MapGet("/arrl/bulletins/update", Update);
 
 async Task<object?> GetFeed(int year, int? month, HttpContext context, [FromServices]ArrlFeedBuilder feedBuilder)
 {
-    if (year < 2000 || month is < 1 or > 12)
+    if (year < 1995 || year > DateTime.Now.Year + 1 || month is < 1 or > 12)
     {
         context.Response.StatusCode = 404;
         return null;
