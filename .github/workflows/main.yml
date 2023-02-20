@@ -1,0 +1,26 @@
+name: Build and Push via Docker
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  workflow_dispatch:
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: |
+        docker login cr.maragnus.com -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} && \
+        docker build . --file Dockerfile \
+            --tag cr.maragnus.com/kilotx:${{ github.run_number }} \
+            --tag cr.maragnus.com/kilotx:latest \
+            --build-arg BUILD_REVISION=${{ github.run_number }} && \
+        docker image push cr.maragnus.com/kilotx:${{ github.run_number }} && \
+        docker image push cr.maragnus.com/kilotx:latest
