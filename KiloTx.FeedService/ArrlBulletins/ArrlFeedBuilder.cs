@@ -131,8 +131,7 @@ public class ArrlFeedBuilder
                 {
                     Title = new TextSyndicationContent(bulletin.Title, TextSyndicationContentKind.Plaintext),
                     Content = new TextSyndicationContent(bulletin.Content, TextSyndicationContentKind.Plaintext),
-                    BaseUri = new Uri(bulletin.Url),
-                    Id = bulletin.Name,
+                    BaseUri = new Uri($"{_options.Url}/{bulletin.Url}"),
                     PublishDate = bulletin.Date.ToDateTime(new TimeOnly(0, 0)),
                     Categories = { categories[bulletin.Category] }
                 })
