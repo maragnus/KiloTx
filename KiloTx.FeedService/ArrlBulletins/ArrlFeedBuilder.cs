@@ -19,6 +19,8 @@ public class ArrlOptions
     
     // ReSharper disable once CollectionNeverUpdated.Global
     public Dictionary<string, string> CategoryUrls { get; set; } = new();
+    
+    /// <summary>This is how many URLs are downloaded concurrently</summary>
     public int Concurrency { get; set; } = 4;
 }
 
