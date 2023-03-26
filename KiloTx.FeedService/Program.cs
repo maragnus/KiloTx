@@ -33,7 +33,7 @@ app.MapGet("/arrl/bulletins/update", Update);
     return (startDate, startDate.AddYears(1).AddDays(-1));
 }
 
-async Task<object?> GetFeed(
+async Task GetFeed(
     int year, 
     int? month, 
     HttpContext context, 
@@ -42,12 +42,14 @@ async Task<object?> GetFeed(
     if (year < 1995 || year > DateTime.Now.Year + 1 || month is < 1 or > 12)
     {
         context.Response.StatusCode = 404;
-        return "Date is invalid";
+        await context.Response.WriteAsync("Date is invalid");
+        return;
     }
 
     var (startDate, endDate) = GetDateRange(year, month);
     context.Response.ContentType = "application/rss+xml";
-    return await feedBuilder.BuildRssFeed(startDate, endDate);
+    await using var stream = context.Response.Body;
+    await feedBuilder.BuildRssFeed(stream, startDate, endDate);
 }
 
 

@@ -2,6 +2,7 @@ using System.Net;
 using System.ServiceModel.Syndication;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Unicode;
 using System.Xml;
 using KiloTx.ArrlBulletins;
 using Microsoft.Extensions.Options;
@@ -16,6 +17,7 @@ public class ArrlOptions
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;
     public string Url { get; set; } = null!;
+    public string BaseUrl { get; set; } = null!;
     
     // ReSharper disable once CollectionNeverUpdated.Global
     public Dictionary<string, string> CategoryUrls { get; set; } = new();
@@ -133,7 +135,7 @@ public class ArrlFeedBuilder
                 {
                     Title = new TextSyndicationContent(bulletin.Title, TextSyndicationContentKind.Plaintext),
                     Content = new TextSyndicationContent(bulletin.Content, TextSyndicationContentKind.Plaintext),
-                    BaseUri = new Uri($"{_options.Url}/{bulletin.Url}"),
+                    BaseUri = new Uri($"{_options.BaseUrl}{bulletin.Url}"),
                     PublishDate = bulletin.Date.ToDateTime(new TimeOnly(0, 0)),
                     Categories = { categories[bulletin.Category] }
                 })
@@ -143,18 +145,22 @@ public class ArrlFeedBuilder
 
         return feed;
     }
-
+    
     public async Task<string> BuildRssFeed(DateOnly startDate, DateOnly? endDate)
     {
-        var feed = await BuildSyndicationFeed(startDate, endDate);
+        var memory = new MemoryStream();
 
-        var xml = new StringBuilder();
-        await using (var writer = XmlWriter.Create(xml, new XmlWriterSettings { Async = true }))
-        {
-            var rssFormatter = new Rss20FeedFormatter(feed);
-            rssFormatter.WriteTo(writer);
-        }
+        await BuildRssFeed(memory, startDate, endDate);
 
-        return xml.ToString();
+        return Encoding.UTF8.GetString(memory.ToArray());
     }
+
+     public async Task BuildRssFeed(Stream stream, DateOnly startDate, DateOnly? endDate)
+     {
+         var feed = await BuildSyndicationFeed(startDate, endDate);
+         var settings = new XmlWriterSettings { Async = true, Encoding = Encoding.UTF8, Indent = true };
+         await using var writer = XmlWriter.Create(stream, settings);
+         var rssFormatter = new Rss20FeedFormatter(feed);
+         rssFormatter.WriteTo(writer);
+     }
 }
